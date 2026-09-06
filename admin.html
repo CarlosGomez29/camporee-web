@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Panel Administrativo - Camporee</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="min-h-screen text-slate-800 antialiased">
+  <div class="page-glow"></div>
+
+  <header class="relative z-10">
+    <div class="camporee-shell pt-4 pb-3">
+      <div class="camporee-header-card admin-header">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span class="camporee-badge">Panel administrador</span>
+            <h1 class="camporee-title mt-3">Camporee 2026</h1>
+            <p class="camporee-subtitle">Control total de accesos, QR y registros</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="open-door" class="header-link accent" type="button">Abrir Puerta</button>
+            <button id="logout-admin" class="header-link" type="button">Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="camporee-shell relative z-10 pb-10 pt-5">
+    <section class="grid gap-4 md:grid-cols-4" id="stats-cards"></section>
+
+    <section class="camporee-card mt-6 p-5">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <p class="eyebrow">Seguridad</p>
+          <h2 class="text-2xl font-extrabold tracking-tight">Cambiar contraseña</h2>
+        </div>
+      </div>
+
+      <form id="password-form" class="grid gap-4 md:grid-cols-3">
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Contraseña actual</label>
+          <input id="current-password" type="password" class="w-full rounded-xl border border-slate-200 p-3" placeholder="Actual">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Nueva contraseña</label>
+          <input id="new-password" type="password" class="w-full rounded-xl border border-slate-200 p-3" placeholder="Nueva">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Confirmar contraseña</label>
+          <input id="confirm-password" type="password" class="w-full rounded-xl border border-slate-200 p-3" placeholder="Repita la nueva">
+        </div>
+
+        <div class="md:col-span-3 flex items-center justify-between gap-3">
+          <p id="password-feedback" class="min-h-[1.25rem] text-sm text-red-600"></p>
+          <button type="submit" class="primary-btn">Guardar contraseña</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="camporee-card mt-6 p-5">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <p class="eyebrow">Gestión</p>
+          <h2 class="text-2xl font-extrabold tracking-tight">Registros del sistema</h2>
+        </div>
+        <button id="refresh-list" type="button" class="secondary-btn">Actualizar</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[900px] text-left text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-600">
+              <th class="py-3 pr-3">ID</th>
+              <th class="py-3 pr-3">Nombre</th>
+              <th class="py-3 pr-3">Tipo</th>
+              <th class="py-3 pr-3">Placa</th>
+              <th class="py-3 pr-3">Estado</th>
+              <th class="py-3 pr-3">QR</th>
+              <th class="py-3 pr-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="admin-reg-list"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="admin-edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4">
+    <div class="w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="eyebrow">Edición</p>
+          <h3 class="text-xl font-extrabold">Editar registro</h3>
+        </div>
+        <button id="close-edit-modal" type="button" class="text-sm font-bold text-slate-500">Cerrar</button>
+      </div>
+
+      <form id="edit-form" class="grid gap-4 md:grid-cols-2">
+        <input id="edit-id" type="hidden">
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Nombre</label>
+          <input id="edit-nombre" type="text" class="w-full rounded-xl border border-slate-200 p-3">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Apellido</label>
+          <input id="edit-apellido" type="text" class="w-full rounded-xl border border-slate-200 p-3">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Teléfono</label>
+          <input id="edit-telefono" type="text" class="w-full rounded-xl border border-slate-200 p-3">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Placa</label>
+          <input id="edit-placa" type="text" class="w-full rounded-xl border border-slate-200 p-3">
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Cargo / Rol</label>
+          <input id="edit-cargo" type="text" class="w-full rounded-xl border border-slate-200 p-3">
+        </div>
+
+        <div class="md:col-span-2 flex justify-end gap-3">
+          <button type="button" id="cancel-edit" class="secondary-btn">Cancelar</button>
+          <button type="submit" class="primary-btn">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Validar Pase - Camporee</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="min-h-screen text-slate-800 antialiased">
+  <div class="page-glow"></div>
+
+  <main class="camporee-shell relative z-10 py-6">
+    <header class="mb-5">
+      <div class="camporee-card header-compact">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <span class="camporee-badge">Puerta de acceso</span>
+            <h1 class="camporee-title small mt-3">Validación de Pases</h1>
+          </div>
+          <a href="index.html" class="header-link">Volver</a>
+        </div>
+      </div>
+    </header>
+
+    <div id="door-gate" class="hidden camporee-card scanner-card">
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center">
+        <p class="eyebrow">Zona restringida</p>
+        <h2 class="mt-2 text-2xl font-extrabold text-slate-800">Acceso de puerta</h2>
+        <p class="mt-2 text-sm text-slate-600">Debes autenticarte para ingresar al modo puerta.</p>
+
+        <form id="door-login-form" class="mt-4 space-y-3">
+          <input id="door-password" type="password" class="w-full rounded-xl border border-slate-200 p-3" placeholder="Contraseña de acceso">
+          <p id="door-error" class="min-h-[1rem] text-sm text-red-600"></p>
+          <button type="submit" class="primary-btn w-full">Entrar</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="door-protected" class="hidden">
+      <div id="scanner-area" class="camporee-card scanner-card">
+        <div id="reader" class="reader-shell"></div>
+        <div id="scan-result" class="mt-4"></div>
+
+        <div class="scanner-actions">
+          <button id="start-scan" class="primary-btn">Iniciar Cámara</button>
+          <button id="stop-scan" class="secondary-btn">Detener</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- html5-qrcode -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>
+    // Lógica de validación: lectura del QR y verificación en localStorage
+    const resultEl = document.getElementById('scan-result');
+    const startBtn = document.getElementById('start-scan');
+    const stopBtn = document.getElementById('stop-scan');
+    const reader = document.getElementById('reader');
+    let html5QrcodeScanner;
+
+    function loadRegs(){
+      return JSON.parse(localStorage.getItem('camporee-registrations')||'[]');
+    }
+
+    function showBanner(type, title, html){
+      resultEl.innerHTML = `<div class=\"p-4 rounded ${type==='ok'? 'bg-emerald-100 border border-emerald-300':'bg-red-100 border border-red-300'}\"><h3 class=\"font-semibold\">${title}</h3><div class=\"mt-1\">${html}</div></div>`;
+    }
+
+    function handleScan(text){
+      // esperamos formato: camporee|<id>
+      if(!text) return;
+      const parts = text.split('|');
+      if(parts[0] !== 'camporee' || !parts[1]){
+        showBanner('err','NO AUTORIZADO','El código no corresponde a un pase válido.');
+        return;
+      }
+      const id = parts[1];
+      const regs = loadRegs();
+      const reg = regs.find(r=>r.id===id);
+      if(!reg){
+        showBanner('err','NO AUTORIZADO','El código no corresponde a un pase válido.');
+        return;
+      }
+      if(reg.used){
+        showBanner('err','NO AUTORIZADO','El pase ya fue utilizado anteriormente.');
+        return;
+      }
+      // marcar como usado
+      reg.used = true;
+      reg.usedAt = new Date().toISOString();
+      localStorage.setItem('camporee-registrations', JSON.stringify(regs));
+
+      const info = `<p><strong>Placa:</strong> ${reg.placa}</p><p><strong>Nombre:</strong> ${reg.nombre} ${reg.apellido}</p><p><strong>Tipo:</strong> ${reg.category}</p><p><strong>Fecha/Hora:</strong> ${new Date(reg.usedAt).toLocaleString()}</p>`;
+      showBanner('ok','VEHÍCULO AUTORIZADO', info);
+    }
+
+    startBtn.addEventListener('click', ()=>{
+      if(html5QrcodeScanner) return;
+      html5QrcodeScanner = new Html5Qrcode("reader");
+      Html5Qrcode.getCameras().then(cameras=>{
+        const cameraId = cameras && cameras.length ? cameras[0].id : null;
+        html5QrcodeScanner.start(cameraId, { fps: 10, qrbox: 250 }, (decodedText)=>{ handleScan(decodedText); }, (error)=>{})
+        .catch(err=>{ showBanner('err','ERROR','No se pudo iniciar la cámara: '+err) });
+      }).catch(err=>{ showBanner('err','ERROR','No se pudo acceder a las cámaras: '+err) });
+    });
+
+    stopBtn.addEventListener('click', ()=>{
+      if(!html5QrcodeScanner) return;
+      html5QrcodeScanner.stop().then(()=>{ html5QrcodeScanner.clear(); html5QrcodeScanner=null; }).catch(()=>{});
+    });
+
+    const doorLoginForm = document.getElementById('door-login-form');
+    if (doorLoginForm) {
+      doorLoginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const password = document.getElementById('door-password').value.trim();
+        const errorEl = document.getElementById('door-error');
+        const storedPassword = localStorage.getItem('camporee-admin-password') || 'Camporee*2026';
+
+        if (password !== storedPassword) {
+          errorEl.textContent = 'Contraseña incorrecta.';
+          return;
+        }
+
+        localStorage.setItem('camporee-admin-auth', 'true');
+        document.getElementById('door-gate').classList.add('hidden');
+        document.getElementById('door-protected').classList.remove('hidden');
+      });
+    }
+
+    if (window.CamporeeAuth && window.CamporeeAuth.guardDoorPage) {
+      window.CamporeeAuth.guardDoorPage();
+    }
+  </script>
+</body>
+</html>

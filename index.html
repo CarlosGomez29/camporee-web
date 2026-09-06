@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Camporee 2026 - Control Vehicular</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="min-h-screen text-slate-800 antialiased">
+  <div class="page-glow"></div>
+
+  <header class="relative z-10">
+    <div class="camporee-shell pt-4 pb-3">
+      <div class="camporee-header-card">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <span class="camporee-badge">Camporee 2026</span>
+            <h1 class="camporee-title mt-3">Control Vehicular</h1>
+            <p class="camporee-subtitle">Obtén tu pase de acceso oficial</p>
+          </div>
+
+          <nav class="flex items-center gap-2 sm:gap-3">
+            <button type="button" class="header-link" data-admin-action="door">Modo Puerta</button>
+            <button id="open-list" class="header-link accent" data-admin-action="records">Ver Registros</button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="admin-auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+    <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <p class="eyebrow">Acceso restringido</p>
+          <h3 class="text-xl font-extrabold text-slate-800">Ingresar credenciales</h3>
+        </div>
+        <button id="auth-cancel" type="button" class="text-sm font-bold text-slate-500">Cerrar</button>
+      </div>
+
+      <form class="space-y-4">
+        <input id="auth-target" type="hidden" value="records">
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1">Contraseña</label>
+          <input id="admin-password" type="password" class="w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" placeholder="Ingrese la contraseña">
+        </div>
+        <p id="auth-error" class="min-h-[1.25rem] text-sm text-red-600"></p>
+        <button type="submit" class="primary-btn w-full">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <main class="camporee-shell relative z-10 pb-10">
+    <section id="landing" class="space-y-5">
+      <div class="camporee-card hero-panel">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <p class="eyebrow">Sistema de registro</p>
+            <h2 class="hero-title">Selecciona tu categoría</h2>
+          </div>
+          <div class="hero-pill">3 opciones</div>
+        </div>
+
+        <p class="hero-copy">Crea tu pase vehicular de forma rápida, segura y amigable desde tu móvil o tablet.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <button data-type="iglesia" class="category-btn">
+          <span class="category-icon icon-forest">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 9h2l7-6 7 6h2L12 2zm-7 9h14v2H5v-2zm1 4h12v2H6v-2zm2 4h8v2H8v-2z"/></svg>
+          </span>
+          <span class="category-text">Registro de Iglesia</span>
+          <span class="category-meta">1 vehículo por iglesia</span>
+        </button>
+
+        <button data-type="comision" class="category-btn">
+          <span class="category-icon icon-amber">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 4.58-5.18 10.66-6.32 11.92a1 1 0 0 1-1.36 0C10.18 19.66 5 13.58 5 9a7 7 0 0 1 7-7zm0 9.5A2.5 2.5 0 1 0 12 6a2.5 2.5 0 0 0 0 5.5z"/></svg>
+          </span>
+          <span class="category-text">Registro de Comisión</span>
+          <span class="category-meta">1 pase por cada 5 miembros</span>
+        </button>
+
+        <button data-type="staff" class="category-btn">
+          <span class="category-icon icon-sky">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-3.33 0-6 2.24-6 5v1h12v-1c0-2.76-2.67-5-6-5zm9-3h-2v-2h-2v2h-2v2h2v2h2v-2h2z"/></svg>
+          </span>
+          <span class="category-text">Registro de Staff</span>
+          <span class="category-meta">Acceso institucional</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="form-section" class="camporee-card mt-6 hidden">
+      <div class="form-header-row">
+        <button id="back-btn" class="back-link" type="button">← Volver</button>
+        <div class="step-indicator" id="step-note"></div>
+      </div>
+
+      <h2 id="form-title" class="form-title"></h2>
+
+      <form id="reg-form" class="space-y-4 mt-4">
+        <div id="dynamic-steps" class="space-y-4"></div>
+
+        <div class="form-actions">
+          <button type="button" id="prev-step" class="secondary-btn hidden">Atrás</button>
+          <button type="submit" id="submit-btn" class="primary-btn">Siguiente</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="confirm-section" class="mt-6 hidden">
+      <div class="camporee-card credential-wrap">
+        <div class="credential-header">
+          <div>
+            <p class="eyebrow light">Pase autorizado</p>
+            <h3 class="credential-title">¡Registro completado!</h3>
+          </div>
+          <span class="status-badge success">Activo</span>
+        </div>
+
+        <div class="credential-ticket">
+          <div id="summary" class="summary-grid"></div>
+          <div id="qrcode" class="qrcode-box"></div>
+        </div>
+
+        <div class="credential-actions">
+          <button id="download-qr" class="primary-btn wide">Descargar Pase QR</button>
+          <button id="new-reg" class="secondary-btn">Nuevo Registro</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="list-section" class="camporee-card mt-6 hidden">
+      <h3 class="list-title">Registros Activos</h3>
+      <div id="reg-list" class="mt-3 space-y-2"></div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
