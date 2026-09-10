@@ -1,7 +1,7 @@
 (function () {
   const ADMIN_KEY = 'camporee-admin-password';
   const ADMIN_SESSION_KEY = 'camporee-admin-auth';
-  const DEFAULT_PASSWORD = 'Camporee*2026';
+  const DEFAULT_PASSWORD = 'admin';
 
   function getStoredPassword() {
     return localStorage.getItem(ADMIN_KEY) || DEFAULT_PASSWORD;
